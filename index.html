@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8" />
+  <title>Panel Invitaciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* PALETA DE COLORES */
+    :root { 
+      --main: #5ddcd9; 
+      --accent: #ff72ba; 
+      --bg-gradient: linear-gradient(135deg, #f3fdfd 0%, #fff5fa 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text: #444; 
+      --text-light: #777;
+      --danger: #ff4d4d; 
+      --success: #20bf6b; 
+      --warning: #f39c12;
+      --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+      
+      /* Estados */
+      --boleta-ok: #20bf6b;
+      --boleta-no: #ff6b6b;
+      --pago-ok: #2ecc71;
+      --pago-no: #e67e22;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      background: var(--bg-gradient); 
+      margin: 0; padding: 30px; 
+      color: var(--text); 
+      min-height: 100vh; 
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* HEADER */
+    h2 { font-weight: 700; color: #333; letter-spacing: -0.5px; }
+    
+    /* BUTTONS */
+    .btn { 
+      padding: 10px 20px; border: none; border-radius: 50px; 
+      font-weight: 600; cursor: pointer; transition: all .3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+      font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.3px;
+    }
+    .btn-primary { 
+      background: linear-gradient(45deg, var(--accent), #ff99cc); 
+      color: white; 
+      box-shadow: 0 4px 15px rgba(255,114,186,0.4); 
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,114,186,0.6); }
+    
+    .btn-outline { border: 1px solid #ddd; background: white; color: #666; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+    
+    .btn-success { background: var(--success); color: white; box-shadow: 0 4px 15px rgba(32,191,107,0.3); }
+    .btn-success:hover { transform: translateY(-3px); background: #1eb163; box-shadow: 0 8px 20px rgba(32,191,107,0.5); }
+    
+    .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; transform: translateY(-2px); }
+    
+    .btn-icon-only { padding: 8px 10px; border-radius: 12px; width: 36px; height: 36px; }
+    .btn-sm { font-size: 11px; padding: 6px 12px; }
+
+    /* TOGGLE BUTTONS (BOLETA & PAGO) */
+    .btn-toggle {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      width: 100%;
+      text-align: center;
+      display: block;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+    .btn-loading { opacity: 0.6; cursor: wait; background: #eee !important; color: #999 !important; border-color: #ddd !important; }
+
+    /* Estilos Boleta */
+    .boleta-entregado { background: #e8f5e9; color: var(--boleta-ok); border-color: #c8e6c9; }
+    .boleta-entregado:hover { background: var(--boleta-ok); color: white; }
+    .boleta-pendiente { background: #ffebee; color: var(--boleta-no); border-color: #ffcdd2; }
+    .boleta-pendiente:hover { background: var(--boleta-no); color: white; }
+
+    /* Estilos Pago */
+    .pago-pagado { background: #eafff3; color: var(--pago-ok); border-color: #acfbc4; }
+    .pago-pagado:hover { background: var(--pago-ok); color: white; }
+    .pago-pendiente { background: #fff4e6; color: var(--pago-no); border-color: #ffccbc; }
+    .pago-pendiente:hover { background: var(--pago-no); color: white; }
+    
+    /* CARDS */
+    .card { 
+      background: var(--card-bg); 
+      padding: 35px; border-radius: 24px; 
+      box-shadow: var(--shadow); 
+      border: 1px solid rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+      margin-bottom: 25px; display: none; 
+    }
+    .card.active { display: block; animation: slideUp 0.4s ease-out; }
+    
+    /* TABS */
+    .tabs { display: flex; gap: 15px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+    .tab { 
+      padding: 12px 25px; background: white; border-radius: 50px; 
+      cursor: pointer; font-weight: 600; font-size: 14px; white-space: nowrap;
+      color: var(--text-light); transition: .3s; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid transparent;
+    }
+    .tab:hover { color: var(--accent); transform: translateY(-2px); }
+    .tab.active { 
+      background: var(--main); color: white; 
+      box-shadow: 0 8px 20px rgba(93, 220, 217, 0.4); 
+      border-color: transparent; 
+    }
+
+    /* FORM ELEMENTS */
+    .row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+    .col { flex: 1 1 220px; }
+    
+    label { 
+      display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; 
+      text-transform: uppercase; color: #888; letter-spacing: 0.8px; 
+    }
+    input, select, textarea { 
+      width: 100%; padding: 12px 15px; border: 2px solid #f0f0f0; 
+      border-radius: 12px; outline: none; font-family: inherit; font-size: 14px;
+      background: #f9f9f9; transition: all .3s; 
+    }
+    input:focus, select:focus, textarea:focus { 
+      border-color: var(--main); background: white; 
+      box-shadow: 0 0 0 4px rgba(93, 220, 217, 0.15); 
+    }
+    input[type="file"] { padding: 9px; background: white; }
+    
+    .section-title { 
+      color: var(--main); font-size: 16px; font-weight: 700; 
+      margin: 30px 0 20px 0; padding-bottom: 8px; 
+      border-bottom: 2px dashed #eee; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before { content: ''; display: block; width: 6px; height: 20px; background: var(--accent); border-radius: 4px; }
+
+    /* TABLES */
+    .table-wrap { 
+      overflow-x: auto; border-radius: 16px; 
+      background: white; box-shadow: var(--shadow); 
+      border: 1px solid #f5f5f5; 
+      min-height: 300px;
+    }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
+    thead { background: linear-gradient(90deg, var(--main), #4bcac7); color: white; }
+    th { padding: 15px 12px; text-align: left; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; border-bottom: none; white-space: nowrap;}
+    td { padding: 12px 12px; border-bottom: 1px solid #f4f4f4; font-size: 13px; color: #555; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background-color: #f9feff; }
+    
+    /* FINANZAS EN TABLA */
+    .money-total { font-weight: 700; color: #333; }
+    .money-restante { font-size: 11px; display: block; margin-top: 2px; }
+    .money-restante.debe { color: var(--danger); font-weight: 600; }
+    .money-restante.ok { color: var(--success); }
+
+    /* TAGS */
+    .tag { padding: 6px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;}
+    .tag-Pendiente { background: #fff8e1; color: #f39c12; border: 1px solid #ffeebb; }
+    .tag-Avanzando { background: #e0f7fa; color: #00bcd4; border: 1px solid #b2ebf2; }
+    .tag-Terminado { background: #e8f5e9; color: #43a047; border: 1px solid #c8e6c9; }
+    .tag-Entregado { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+
+    /* PAGINATION */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px; }
+    
+    /* MODALS & NOTIFICATIONS */
+    .modal-overlay { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(40, 44, 52, 0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; 
+      z-index: 1000; opacity: 0; visibility: hidden; transition: .3s; 
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal { 
+      background: white; border-radius: 20px; width: 95%; max-width: 850px; 
+      height: 90vh; display: flex; flex-direction: column; 
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
+      overflow: hidden; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    
+    .modal-header { padding: 25px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: white; }
+    .modal-header h3 { color: var(--accent); font-size: 20px; margin: 0; }
+    .modal-body { padding: 30px; overflow-y: auto; flex: 1; background: #fafafa; }
+    .modal-footer { padding: 20px 30px; border-top: 1px solid #f0f0f0; background: white; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
+    .close-modal { background: none; border: none; font-size: 28px; cursor: pointer; color: #bbb; transition: .2s; line-height: 1; }
+    .close-modal:hover { color: var(--danger); transform: rotate(90deg); }
+
+    /* CONFIRM BOX */
+    .confirm-box { 
+      width: 100%; max-width: 420px; padding: 40px; text-align: center; 
+      border-radius: 24px; background: white; 
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2); 
+      transform: scale(0.9); transition: .2s; 
+    }
+    .modal-overlay.open .confirm-box { transform: scale(1); }
+    .confirm-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #333; }
+    .confirm-text { font-size: 15px; color: #666; margin-bottom: 30px; line-height: 1.6; }
+
+    /* TOAST */
+    .toast-container { position: fixed; top: 30px; right: 30px; z-index: 2000; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+    .toast { 
+      background: white; padding: 16px 24px; border-radius: 12px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+      display: flex; align-items: center; gap: 15px; min-width: 300px; 
+      transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      pointer-events: auto; font-size: 14px; font-weight: 500; border-left: 6px solid #ccc; 
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast-icon { font-size: 20px; }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media(max-width: 768px) {
+       body { padding: 15px; }
+       .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+       .btn { width: 100%; justify-content: center; margin-bottom: 10px; }
+       .btn-icon-only, .btn-sm { width: auto; margin-bottom: 0; }
+       .row { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- CONFIRMATION MODAL CUSTOM -->
+<div class="modal-overlay" id="confirmModalOverlay">
+  <div class="confirm-box">
+    <div style="font-size:40px; margin-bottom:15px;">🤔</div>
+    <div class="confirm-title" id="confirmTitle">¿Estás seguro?</div>
+    <div class="confirm-text" id="confirmText">Esta acción no se puede deshacer.</div>
+    <div style="display: flex; justify-content: center; gap: 15px;">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmAction">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:20px;">
+    <div>
+      <h2 style="margin:0; font-size:28px;">Panel Invitaciones</h2>
+      <p style="margin:5px 0 0; color:var(--text-light); font-size:14px;">Administra pedidos y finanzas</p>
+    </div>
+    <button class="btn btn-primary" onclick="cargarDatos()" style="width:auto;">
+      <span style="font-size:16px;">🔄</span> Recargar Datos
+    </button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="cambiarTab('registro')">📝 Nuevo Pedido</div>
+    <div class="tab" onclick="cambiarTab('proceso')">🚀 En Proceso</div>
+    <div class="tab" onclick="cambiarTab('consulta')">🗄️ Historial</div>
+  </div>
+
+  <!-- 1. REGISTRO -->
+  <div id="registro" class="card active">
+    <form id="formPedido">
+      <div class="section-title">Datos del Cliente</div>
+      <div class="row">
+        <div class="col"><label>Número Cliente *</label><input id="numero_cliente" type="tel" required placeholder="Ej: 999 888 777"></div>
+        <div class="col"><label>Nombres *</label><input id="nombres" required placeholder="Nombre Completo"></div>
+        <div class="col"><label>Edad</label><input id="edad" type="number" placeholder="Ej: 5"></div>
+      </div>
+      
+      <div class="section-title">Detalles del Evento</div>
+      <div class="row">
+        <div class="col">
+          <label>Temática Principal</label>
+          <select id="tematica">
+            <option>Cumpleaños</option><option>Bautizo</option><option>Boda</option>
+            <option>Primera Comunión</option><option>Baby Shower</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="col" id="divOtro">
+          <label>Otra Temática (Específico)</label>
+          <input id="tematica_otro" placeholder="Escribe la temática especial">
+        </div>
+        <div class="col"><label>Tipo de Invitación</label><select id="tipo"><option>Video</option><option>Imagen</option><option>Web</option><option>PDF</option><option>Topper</option><option>Clases</option><option>Otro</option></select></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Fecha Evento *</label><input id="fecha" type="date" required></div>
+        <div class="col"><label>Hora Evento</label><input id="hora" type="time"></div>
+        <div class="col"><label>Lugar</label><input id="lugar" placeholder="Dirección del evento"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Padrinos</label><input id="padrinos" placeholder="Nombres"></div>
+        <div class="col"><label>Padres</label><input id="padres" placeholder="Nombres"></div>
+      </div>
+
+      <div class="section-title">Multimedia y Archivos</div>
+      <div class="row">
+        <div class="col"><label>Subir Fotos</label><input type="file" id="fotos" multiple accept="image/*"></div>
+        <div class="col"><label>Subir Música</label><input type="file" id="musica_archivo" accept="audio/*"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Link Canva</label><input id="link_canva" placeholder="https://..."></div>
+        <div class="col"><label>Link Música</label><input id="musica_link" placeholder="Spotify / YouTube"></div>
+      </div>
+
+      <div class="section-title">Finanzas y Entrega</div>
+      <div class="row">
+        <div class="col"><label>Monto Total (S/)</label><input id="monto_total" type="number" step="0.01" placeholder="Ej: 50.00"></div>
+        <div class="col"><label>Adelanto (S/)</label><input id="adelanto" type="number" step="0.01" placeholder="Ej: 20.00"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Fecha Entrega</label><input id="fecha_entrega" type="date"></div>
+        <div class="col"><label>Comprobante Pago</label><input type="file" id="captura_pago" accept="image/*"></div>
+      </div>
+      <div class="row"><div class="col"><label>Observaciones</label><textarea id="observaciones" rows="3" placeholder="Detalles adicionales..."></textarea></div></div>
+      
+      <div style="text-align:right; margin-top:30px; display:flex; justify-content:flex-end; gap:15px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-outline" style="width:auto;" onclick="document.getElementById('formPedido').reset()">Limpiar Formulario</button>
+        <button type="button" class="btn btn-primary" style="width:auto;" onclick="enviarPedido()" id="btnGuardar">
+          <span>💾</span> Registrar Pedido
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 2. LISTA PROCESO (ACTIVOS) -->
+  <div id="proceso" class="card">
+    <div class="row" style="align-items:flex-end; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <h3 style="margin:0; color:var(--accent); font-size:20px;">Pedidos Activos</h3>
+        <p style="margin:5px 0 0 0; font-size:13px; color:#888;">Cola de trabajo pendiente</p>
+      </div>
+      
+      <div style="display:flex; gap:10px; flex-wrap: wrap;">
+        <!-- FILTROS PROCESO -->
+        <div><label>Filtro Pago</label>
+           <select id="filtroPagoProceso" onchange="PAGE_PROCESO=1; renderProceso()" style="width:120px;">
+             <option value="Todos">Todos</option>
+             <option value="Pendiente">⚠️ Deben</option>
+             <option value="Pagado">💰 Pagado</option>
+           </select>
+        </div>
+        <div><label>Filtro Boleta</label>
+           <select id="filtroBoletaProceso" onchange="PAGE_PROCESO=1; renderProceso()" style="width:120px;">
+             <option value="Todos">Todas</option>
+             <option value="Entregado">🧾 Con Bol.</option>
+             <option value="Sin entregar">⏳ Sin Bol.</option>
+           </select>
+        </div>
+        <div>
+          <label>Estado Trabajo</label>
+          <select id="filtroProceso" onchange="PAGE_PROCESO=1; renderProceso()" style="width:120px;">
+            <option value="Todos">Todos</option>
+            <option value="Pendiente">🟡 Pend.</option>
+            <option value="Avanzando">🔵 Avan.</option>
+            <option value="Terminado">🟢 Term.</option>
+          </select>
+        </div>
+        <div>
+          <label>Buscar</label>
+          <input id="buscadorProceso" placeholder="🔍 Nombre o Código..." onkeyup="PAGE_PROCESO=1; renderProceso()" style="width:160px;">
+        </div>
+      </div>
+    </div>
+    
+    <div class="table-wrap">
+      <table id="tablaProceso">
+        <thead>
+          <tr>
+            <th>Código / Cliente</th>
+            <th>Fecha Evento</th>
+            <th>Temática</th>
+            <th>Monto Total</th>
+            <th>Estado</th>
+            <th>Control</th>
+            <th style="text-align:center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyProceso"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagProceso"></div>
+  </div>
+
+  <!-- 3. LISTA CONSULTA (ENTREGADOS) -->
+  <div id="consulta" class="card">
+    <div class="row" style="align-items:flex-end; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <h3 style="margin:0; color:#666; font-size:20px;">Historial Entregados</h3>
+        <p style="margin:5px 0 0 0; font-size:13px; color:#888;">Archivo finalizado</p>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap: wrap;">
+        <!-- FILTROS HISTORIAL -->
+        <div><label>Filtro Pago</label>
+           <select id="filtroPagoConsulta" onchange="PAGE_CONSULTA=1; renderConsulta()" style="width:120px;">
+             <option value="Todos">Todos</option>
+             <option value="Pendiente">⚠️ Deben</option>
+             <option value="Pagado">💰 Pagado</option>
+           </select>
+        </div>
+        <div><label>Filtro Boleta</label>
+           <select id="filtroBoletaConsulta" onchange="PAGE_CONSULTA=1; renderConsulta()" style="width:120px;">
+             <option value="Todos">Todas</option>
+             <option value="Entregado">🧾 Con Bol.</option>
+             <option value="Sin entregar">⏳ Sin Bol.</option>
+           </select>
+        </div>
+        <div><label>Buscar en Historial</label>
+          <input id="buscadorConsulta" placeholder="🔍 Nombre o Código..." onkeyup="PAGE_CONSULTA=1; renderConsulta()" style="width:200px;">
+        </div>
+      </div>
+    </div>
+    
+    <div class="table-wrap">
+      <table id="tablaConsulta">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Cliente</th>
+            <th>Fecha Evento</th>
+            <th>Finanzas</th>
+            <th>Fecha Entrega</th>
+            <th>Control</th>
+            <th style="text-align:center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyConsulta"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagConsulta"></div>
+  </div>
+</div>
+
+<!-- MODAL EDICIÓN -->
+<div class="modal-overlay" id="modalDetalle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitulo">Editar Pedido</h3>
+      <button class="close-modal" onclick="cerrarModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="formEditar">
+        <input type="hidden" id="edit_codigo">
+        <div class="row" style="background: white; padding: 20px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 25px;">
+          <div class="col"><label>Estado Trabajo</label>
+            <select id="edit_estado" style="background:#e8f0fe; border-color:var(--main); color:#333; font-weight:600;">
+              <option>Pendiente</option><option>Avanzando</option><option>Terminado</option><option>Entregado</option>
+            </select>
+          </div>
+          <div class="col"><label>Estado Pago</label>
+             <select id="edit_estado_pago" style="background:#f0fff4; border-color:var(--success); color:#333; font-weight:600;">
+               <option value="Pendiente">🔴 Pendiente</option>
+               <option value="Pagado">🟢 Pagado Completo</option>
+             </select>
+          </div>
+          <div class="col"><label>Carpeta Drive</label><div id="edit_link_carpeta" style="padding-top:10px; font-weight:500;"></div></div>
+        </div>
+        
+        <div class="section-title">Datos Principales</div>
+        <div class="row">
+          <div class="col"><label>Cliente</label><input id="edit_nombres"></div>
+          <div class="col"><label>Teléfono</label><input id="edit_numero_cliente"></div>
+          <div class="col"><label>Edad</label><input id="edit_edad"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Temática</label><input id="edit_tematica"></div>
+          <div class="col"><label>Específico (Otra)</label><input id="edit_tematica_otro"></div>
+          <div class="col"><label>Tipo</label><select id="edit_tipo"><option>Video</option><option>Imagen</option><option>Web</option><option>PDF</option><option>Topper</option><option>Clases</option><option>Otro</option></select></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Fecha Evento</label><input id="edit_fecha" type="date"></div>
+          <div class="col"><label>Hora</label><input id="edit_hora" type="time"></div>
+          <div class="col"><label>Lugar</label><input id="edit_lugar"></div>
+        </div>
+        
+        <div class="section-title">Finanzas</div>
+        <div class="row">
+          <div class="col"><label>Monto Total (S/)</label><input id="edit_monto_total" type="number" step="0.01"></div>
+          <div class="col"><label>Adelanto (S/)</label><input id="edit_adelanto" type="number" step="0.01"></div>
+          <div class="col" style="padding-top:25px; font-weight:bold; color:var(--danger);" id="edit_saldo_texto"></div>
+        </div>
+
+        <div class="section-title">Archivos (Agregar Nuevos)</div>
+        <div class="row">
+          <div class="col"><label>Agregar Fotos</label><input type="file" id="edit_fotos" multiple accept="image/*"><div class="existing-links" id="view_fotos" style="margin-top:5px; font-size:12px; color:var(--success);"></div></div>
+          <div class="col"><label>Agregar Música</label><input type="file" id="edit_musica_archivo" accept="audio/*"><div class="existing-links" id="view_musica" style="margin-top:5px; font-size:12px; color:var(--success);"></div></div>
+        </div>
+        <div class="row">
+           <div class="col"><label>Link Canva</label><input id="edit_link_canva"></div>
+           <div class="col"><label>Link Música</label><input id="edit_link_musica"></div>
+        </div>
+        
+        <div class="section-title">Entrega y Observaciones</div>
+        <div class="row">
+          <div class="col"><label>Fecha Entrega</label><input id="edit_fecha_entrega" type="date"></div>
+          <div class="col"><label>Agregar Comprobante</label><input type="file" id="edit_captura_pago"></div>
+        </div>
+        <div class="row"><div class="col"><label>Observaciones</label><textarea id="edit_observaciones" rows="3"></textarea></div></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="width:auto;" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" style="width:auto;" onclick="guardarEdicion()" id="btnGuardarEdicion">💾 Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let PEDIDOS_CACHE = [];
+  let PAGE_PROCESO = 1;
+  let PAGE_CONSULTA = 1;
+  const ITEMS_PER_PAGE = 10;
+
+  // --- NOTIFICATIONS & CONFIRM ---
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    const icon = type === 'success' ? '✅' : '⚠️';
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 400);
+    }, 3500);
+  }
+
+  function showConfirm(title, message, onConfirm, isDanger = false) {
+    const overlay = document.getElementById('confirmModalOverlay');
+    const btnConfirm = document.getElementById('btnConfirmAction');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmText').innerText = message;
+    
+    if(isDanger) {
+      btnConfirm.className = 'btn btn-danger';
+      btnConfirm.innerText = "Sí, eliminar";
+    } else {
+      btnConfirm.className = 'btn btn-success';
+      btnConfirm.innerText = "Confirmar";
+    }
+    btnConfirm.onclick = () => { onConfirm(); closeConfirm(); };
+    overlay.classList.add('open');
+  }
+
+  function closeConfirm() { document.getElementById('confirmModalOverlay').classList.remove('open'); }
+
+  // --- TABS & INIT ---
+  function cambiarTab(tabId) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    
+    const tabs = document.querySelectorAll('.tab');
+    if(tabId === 'registro') tabs[0].classList.add('active');
+    if(tabId === 'proceso') { tabs[1].classList.add('active'); cargarDatos(); }
+    if(tabId === 'consulta') { tabs[2].classList.add('active'); cargarDatos(); }
+  }
+
+  function cargarDatos() {
+    google.script.run.withSuccessHandler(data => {
+        PEDIDOS_CACHE = data || [];
+        renderProceso();
+        renderConsulta();
+    }).getPedidos();
+  }
+
+  // --- RENDER FUNCTIONS ---
+  function renderProceso() {
+    const tbody = document.getElementById('tbodyProceso');
+    const pagDiv = document.getElementById('pagProceso');
+    const busqueda = document.getElementById('buscadorProceso').value.toLowerCase();
+    
+    // Filtros
+    const filtroEstado = document.getElementById('filtroProceso').value;
+    const filtroPago = document.getElementById('filtroPagoProceso').value; 
+    const filtroBoleta = document.getElementById('filtroBoletaProceso').value; // NUEVO
+
+    let items = PEDIDOS_CACHE.filter(p => (p['Estado'] || 'Pendiente') !== 'Entregado');
+
+    if(filtroEstado !== 'Todos') items = items.filter(p => (p['Estado'] || 'Pendiente') === filtroEstado);
+    if(filtroPago !== 'Todos') items = items.filter(p => (p['EstadoPago'] || 'Pendiente') === filtroPago);
+    if(filtroBoleta !== 'Todos') items = items.filter(p => (p['Boleta'] || 'Sin entregar') === filtroBoleta); // NUEVO
+    
+    if (busqueda) items = items.filter(p => (String(p['Nombre'])+" "+String(p['Código'])).toLowerCase().includes(busqueda));
+
+    renderPaginacion(items, tbody, pagDiv, PAGE_PROCESO, (newPage) => {
+      PAGE_PROCESO = newPage;
+      renderProceso();
+    }, 'proceso');
+  }
+
+  function renderConsulta() {
+    const tbody = document.getElementById('tbodyConsulta');
+    const pagDiv = document.getElementById('pagConsulta');
+    const busqueda = document.getElementById('buscadorConsulta').value.toLowerCase();
+    
+    // Filtros Nuevos para Historial
+    const filtroPago = document.getElementById('filtroPagoConsulta').value; 
+    const filtroBoleta = document.getElementById('filtroBoletaConsulta').value;
+
+    let items = PEDIDOS_CACHE.filter(p => p['Estado'] === 'Entregado');
+    
+    if(filtroPago !== 'Todos') items = items.filter(p => (p['EstadoPago'] || 'Pendiente') === filtroPago);
+    if(filtroBoleta !== 'Todos') items = items.filter(p => (p['Boleta'] || 'Sin entregar') === filtroBoleta);
+    if (busqueda) items = items.filter(p => (String(p['Nombre'])+" "+String(p['Código'])).toLowerCase().includes(busqueda));
+
+    renderPaginacion(items, tbody, pagDiv, PAGE_CONSULTA, (newPage) => {
+      PAGE_CONSULTA = newPage;
+      renderConsulta();
+    }, 'consulta');
+  }
+
+  function renderPaginacion(items, tbody, pagDiv, currentPage, onPageChange, type) {
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#999;">No hay resultados encontrados.</td></tr>';
+      pagDiv.innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const visibleItems = items.slice(start, start + ITEMS_PER_PAGE);
+
+    const html = visibleItems.map(p => {
+      const fecha = (p['FechaEvento']||'').substring(0,10);
+      const estado = p['Estado'] || 'Pendiente';
+      const fechaEntrega = (p['FechaEstimadaEntrega']||'').substring(0,10);
+      
+      // LOGICA BOLETA
+      const isEntregado = (p['Boleta'] || 'Sin entregar') === 'Entregado';
+      const boletaClass = isEntregado ? 'boleta-entregado' : 'boleta-pendiente';
+      const boletaText = isEntregado ? '🧾 Boleta OK' : '🧾 Sin Boleta';
+      
+      // LOGICA PAGO
+      const estadoPago = p['EstadoPago'] || 'Pendiente';
+      const isPagado = estadoPago === 'Pagado';
+      const pagoClass = isPagado ? 'pago-pagado' : 'pago-pendiente';
+      const pagoText = isPagado ? '💰 Pagado' : '⌛ Debe';
+      
+      // CALCULO DINERO
+      const total = parseFloat(p['MontoTotal']) || 0;
+      const adelanto = parseFloat(p['Adelanto']) || 0;
+      const restante = total - adelanto;
+      
+      let infoDinero = '';
+      if(total > 0) {
+          if(isPagado || restante <= 0) {
+             infoDinero = `<span class="money-total">S/ ${total.toFixed(2)}</span> <span class="money-restante ok">Completo</span>`;
+          } else {
+             infoDinero = `<span class="money-total">S/ ${total.toFixed(2)}</span> <span class="money-restante debe">Resta: S/ ${restante.toFixed(2)}</span>`;
+          }
+      } else {
+          infoDinero = `<span style="color:#999; font-size:12px;">Sin monto</span>`;
+      }
+
+      // BOTONES TOGGLE
+      const btnBoleta = `<button id="btn-boleta-${p['Código']}" class="btn-toggle ${boletaClass}" onclick="toggleBoleta('${p['Código']}')">${boletaText}</button>`;
+      const btnPago = `<button id="btn-pago-${p['Código']}" class="btn-toggle ${pagoClass}" onclick="togglePago('${p['Código']}')">${pagoText}</button>`;
+
+      let controlColumn = `<div>${btnPago}${btnBoleta}</div>`;
+
+      let actions = '';
+      if (type === 'proceso') {
+        actions = `
+          <div style="display:flex; gap:5px; justify-content:center;">
+          <button class="btn btn-icon-only btn-outline" onclick='abrirModal("${p['Código']}")' title="Editar">✏️</button>
+          <button class="btn btn-icon-only btn-success" onclick='marcarEntregado("${p['Código']}")' title="Entregar">✅</button>
+          <button class="btn btn-icon-only btn-danger" onclick='borrarPedido("${p['Código']}")' title="Borrar">🗑️</button>
+          </div>
+        `;
+        
+        return `
+        <tr>
+          <td>
+             <div style="font-weight:700; color:var(--main);">${p['Código']}</div>
+             <div style="font-weight:500;">${p['Nombre']}</div>
+          </td>
+          <td>${fecha}</td>
+          <td>${p['Tematica']}</td>
+          <td>${infoDinero}</td>
+          <td><span class="tag tag-${estado.replace(' ','')}">${estado}</span></td>
+          <td style="text-align:center">${controlColumn}</td>
+          <td style="text-align:center">${actions}</td>
+        </tr>`;
+      } else {
+        // VISTA HISTORIAL
+         actions = `
+          <div style="display:flex; gap:5px; justify-content:center;">
+          <button class="btn btn-icon-only btn-outline" onclick='abrirModal("${p['Código']}")' title="Ver Detalles">👁️</button>
+          <button class="btn btn-icon-only btn-danger" onclick='borrarPedido("${p['Código']}")' title="Borrar">🗑️</button>
+          </div>
+        `;
+        return `
+        <tr>
+            <td style="font-weight:700; color:var(--main);">${p['Código']}</td>
+            <td>${p['Nombre']}</td>
+            <td>${fecha}</td>
+            <td>${infoDinero}</td>
+            <td>${fechaEntrega}</td>
+            <td style="text-align:center">${controlColumn}</td>
+            <td style="text-align:center">${actions}</td>
+        </tr>`;
+      }
+    }).join('');
+
+    tbody.innerHTML = html;
+
+    pagDiv.innerHTML = `
+      <button class="btn btn-outline btn-sm" ${currentPage===1?'disabled':''} id="prev_${type}">❮ Ant.</button>
+      <span style="font-size:13px; font-weight:600; margin:0 15px; color:#666;">Pág ${currentPage}</span>
+      <button class="btn btn-outline btn-sm" ${currentPage===totalPages?'disabled':''} id="next_${type}">Sig. ❯</button>
+    `;
+    
+    document.getElementById(`prev_${type}`).onclick = () => onPageChange(currentPage - 1);
+    document.getElementById(`next_${type}`).onclick = () => onPageChange(currentPage + 1);
+  }
+
+  // --- ACTIONS ---
+  function toggleBoleta(codigo) {
+    const btn = document.getElementById(`btn-boleta-${codigo}`);
+    if(btn) { btn.classList.add('btn-loading'); btn.innerText = '...'; btn.disabled = true; }
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) {
+         const item = PEDIDOS_CACHE.find(p => p['Código'] === codigo);
+         if(item) item['Boleta'] = res.nuevoEstado;
+         renderProceso(); renderConsulta();
+      } else {
+         showToast("Error al cambiar boleta", "error"); cargarDatos();
+      }
+    }).cambiarEstadoBoleta(codigo);
+  }
+
+  function togglePago(codigo) {
+    const btn = document.getElementById(`btn-pago-${codigo}`);
+    if(btn) { btn.classList.add('btn-loading'); btn.innerText = '...'; btn.disabled = true; }
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) {
+         const item = PEDIDOS_CACHE.find(p => p['Código'] === codigo);
+         if(item) item['EstadoPago'] = res.nuevoEstado;
+         // Feedback visual
+         showToast(res.nuevoEstado === 'Pagado' ? "Pago completado" : "Pago marcado como pendiente", res.nuevoEstado === 'Pagado' ? "success" : "success");
+         renderProceso(); renderConsulta();
+      } else {
+         showToast("Error al cambiar pago", "error"); cargarDatos();
+      }
+    }).cambiarEstadoPago(codigo);
+  }
+
+  function marcarEntregado(codigo) {
+    showConfirm("¿Marcar Entregado?", `El pedido ${codigo} pasará al historial.`, () => {
+        google.script.run.withSuccessHandler(res => {
+           if(res.success) { cargarDatos(); showToast("Pedido entregado", "success"); }
+           else showToast("Error: " + res.error, "error");
+        }).actualizarEstadoPedido(codigo, "Entregado");
+    });
+  }
+
+  function borrarPedido(codigo) {
+    showConfirm("¿Eliminar Pedido?", `Se borrará el pedido ${codigo} y sus archivos.`, () => {
+        google.script.run.withSuccessHandler(res => {
+          if(res.success) { showToast("Eliminado correctamente", "success"); cargarDatos(); }
+          else showToast("Error: " + res.error, "error");
+        }).eliminarPedido(codigo);
+    }, true);
+  }
+
+  function abrirModal(codigo) {
+    const p = PEDIDOS_CACHE.find(item => item['Código'] === codigo);
+    if(!p) return;
+    document.getElementById('edit_codigo').value = codigo;
+    document.getElementById('modalTitulo').innerText = "Pedido: " + codigo;
+    
+    const setVal = (id, k) => { const el=document.getElementById(id); if(el) el.value = p[k]||''; };
+    setVal('edit_nombres', 'Nombre'); setVal('edit_numero_cliente', 'NumeroCliente');
+    setVal('edit_edad', 'Edad'); setVal('edit_tematica', 'Tematica');
+    setVal('edit_tematica_otro', 'TematicaOtro'); setVal('edit_tipo', 'Tipo');
+    setVal('edit_estado', 'Estado'); setVal('edit_estado_pago', 'EstadoPago');
+    
+    // Finanzas
+    setVal('edit_monto_total', 'MontoTotal');
+    setVal('edit_adelanto', 'Adelanto');
+    // Calcular saldo texto para modal
+    const total = parseFloat(p['MontoTotal'])||0;
+    const adel = parseFloat(p['Adelanto'])||0;
+    if(total > 0) document.getElementById('edit_saldo_texto').innerText = `Resta: S/ ${(total-adel).toFixed(2)}`;
+    else document.getElementById('edit_saldo_texto').innerText = "";
+
+    if(p['FechaEvento']) document.getElementById('edit_fecha').value = p['FechaEvento'].substring(0,10);
+    if(p['FechaEstimadaEntrega']) document.getElementById('edit_fecha_entrega').value = p['FechaEstimadaEntrega'].substring(0,10);
+    
+    setVal('edit_hora', 'HoraEvento'); setVal('edit_lugar', 'Lugar');
+    setVal('edit_link_canva', 'LinkCanva'); setVal('edit_link_musica', 'LinkMusica');
+    setVal('edit_observaciones', 'Observaciones');
+    
+    document.getElementById('edit_link_carpeta').innerHTML = p['CarpetaPedido'] ? `<a href="${p['CarpetaPedido']}" target="_blank" style="color:var(--main); font-weight:bold; text-decoration:none;">📂 Abrir Carpeta Drive</a>` : '-';
+    document.getElementById('view_fotos').innerHTML = p['LinkFotos'] ? '📸 Fotos cargadas previamente' : '';
+    document.getElementById('view_musica').innerHTML = p['LinkMusica'] ? '🎵 Música cargada previamente' : '';
+    
+    document.getElementById('modalDetalle').classList.add('open');
+  }
+
+  function cerrarModal() { document.getElementById('modalDetalle').classList.remove('open'); }
+
+  function guardarEdicion() {
+    const btn = document.getElementById('btnGuardarEdicion');
+    btn.disabled = true; btn.innerText = "Guardando...";
+    const val = (id) => document.getElementById(id).value;
+    const payload = {
+      codigo: val('edit_codigo'), nombres: val('edit_nombres'), numero_cliente: val('edit_numero_cliente'),
+      edad: val('edit_edad'), tematica: val('edit_tematica'), tematica_otro: val('edit_tematica_otro'),
+      tipo: val('edit_tipo'), fecha: val('edit_fecha'), hora: val('edit_hora'), lugar: val('edit_lugar'),
+      link_canva: val('edit_link_canva'), link_musica: val('edit_link_musica'),
+      monto_total: val('edit_monto_total'), adelanto: val('edit_adelanto'), // Nuevo
+      fecha_entrega: val('edit_fecha_entrega'),
+      observaciones: val('edit_observaciones'), 
+      estado: val('edit_estado'), estado_pago: val('edit_estado_pago'), // Nuevo
+      fotosFiles: [], capturaPagoFiles: [], musicaFiles: []
+    };
+
+    Promise.all([getFiles('edit_fotos'), getFiles('edit_captura_pago'), getFiles('edit_musica_archivo')])
+    .then(([fotos, pagos, musica]) => {
+       payload.fotosFiles = fotos; payload.capturaPagoFiles = pagos; payload.musicaFiles = musica;
+       google.script.run.withSuccessHandler(res => {
+         btn.disabled = false; btn.innerText = "💾 Guardar Cambios";
+         if(res.success) { cerrarModal(); cargarDatos(); showToast("Cambios guardados", "success"); }
+         else showToast("Error: " + res.error, "error");
+       }).editarPedido(payload);
+    });
+  }
+
+  // --- SUBMIT ---
+  function enviarPedido() {
+    const btn = document.getElementById('btnGuardar'); btn.disabled=true; btn.innerText="Subiendo...";
+    const val = (id) => document.getElementById(id).value;
+    const payload = {
+      numero_cliente: val('numero_cliente'), nombres: val('nombres'), edad: val('edad'),
+      tematica: val('tematica'), tematica_otro: val('tematica_otro'), tipo: val('tipo'),
+      fecha: val('fecha'), hora: val('hora'), lugar: val('lugar'), padrinos: val('padrinos'),
+      padres: val('padres'), link_canva: val('link_canva'), musicaLink: val('musica_link'),
+      monto_total: val('monto_total'), adelanto: val('adelanto'), // Nuevo
+      fecha_entrega: val('fecha_entrega'), observaciones: val('observaciones'),
+      fotosFiles: [], capturaPagoFiles: [], musicaFiles: []
+    };
+    Promise.all([getFiles('fotos'), getFiles('captura_pago'), getFiles('musica_archivo')]).then(([f, p, m]) => {
+        payload.fotosFiles = f; payload.capturaPagoFiles = p; payload.musicaFiles = m;
+        google.script.run.withSuccessHandler(res=>{
+            btn.disabled=false; btn.innerText="💾 Registrar Pedido";
+            if(res.success){ showToast("Registrado: "+res.code, "success"); document.getElementById('formPedido').reset(); cambiarTab('proceso'); }
+            else showToast("Error: "+res.error, "error");
+        }).registrarPedido(payload);
+    });
+  }
+
+  async function getFiles(id) {
+    const input = document.getElementById(id); if (!input || !input.files.length) return [];
+    const promises = []; for (let i = 0; i < input.files.length; i++) promises.push(fileToBase64(input.files[i]));
+    return Promise.all(promises);
+  }
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ base64: reader.result, type: file.type, name: file.name });
+      reader.onerror = reject; reader.readAsDataURL(file);
+    });
+  }
+</script>
+
+</body> </html>
